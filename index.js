@@ -103,6 +103,8 @@ server.post('/studentform', async (req,res) =>{
     console.log(req.body);
 
 })
-server.listen(8080, () => {
-    console.log('server started')
-})
+
+const PORT = process.env.PORT || 3000; 
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
