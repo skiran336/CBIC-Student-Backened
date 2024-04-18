@@ -54,7 +54,9 @@ const Student= mongoose.model('StudentForm', studentSchema);
 
 const server = express();
 
-server.use(cors());
+server.use(cors({
+    origin: 'https://cbic-student-side.vercel.app/' 
+}));
 server.use(bodyParser.json());
 
 server.post('/studentform', async (req,res) =>{
