@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
 
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 main();
@@ -52,6 +53,14 @@ const studentSchema = new mongoose.Schema({
 
 const Student= mongoose.model('StudentForm', studentSchema);
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
 const server = express();
 
 server.use(cors({
@@ -95,14 +104,28 @@ server.post('/studentform', async (req,res) =>{
     try {
         await student.save();
         
-        res.status(201).json({ message: "Student form submitted successfully!" });
+        const mailOptions = {
+            from: process.env.EMAIL_USER, 
+            to: req.body.email, 
+            subject: 'Confirmation of CBIC Entry Form Submission', 
+            text: 'Thank you for submitting your form. We have received your details.', 
+            html: `<p>Thank you for submitting your form, <b>${req.body.name}</b>.</p>` 
+        };
+
+        transporter.sendMail(mailOptions, function (err, info) {
+            if(err) {
+                console.log(err);
+                res.status(500).json({ message: 'Email could not be sent.', error: err });
+            } else {
+                console.log(info);
+                res.status(201).json({ message: "Student form submitted successfully and email sent!" });
+            }
+        });
     } catch (error) {
+        console.log(error);
         res.status(400).json({ error: error.message });
     }
-    
-    console.log(req.body);
-
-})
+});
 
 const PORT = process.env.PORT || 3000; 
 server.listen(PORT, () => {
